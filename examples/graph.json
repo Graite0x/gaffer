@@ -1,0 +1,34 @@
+{
+  "nodes": [
+    {
+      "id": "T001",
+      "title": "Scaffold",
+      "command": "printf 'ok\\n' > T001.txt && git add T001.txt && git commit -m T001",
+      "gate": ["test -f T001.txt"]
+    },
+    {
+      "id": "T002",
+      "title": "Fan-out A",
+      "depends_on": ["T001"],
+      "parallel": true,
+      "role": "backend-architect",
+      "command": "printf 'a\\n' > T002.txt && git add T002.txt && git commit -m T002",
+      "gate": ["test -f T002.txt"]
+    },
+    {
+      "id": "T003",
+      "title": "Fan-out B",
+      "depends_on": ["T001"],
+      "parallel": true,
+      "command": "printf 'b\\n' > T003.txt && git add T003.txt && git commit -m T003",
+      "gate": ["test -f T003.txt"]
+    },
+    {
+      "id": "T004",
+      "title": "Merge point",
+      "depends_on": ["T002", "T003"],
+      "command": "printf 'done\\n' > T004.txt && git add T004.txt && git commit -m T004",
+      "gate": ["test -f T001.txt", "test -f T002.txt", "test -f T003.txt"]
+    }
+  ]
+}

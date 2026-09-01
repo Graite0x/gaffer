@@ -1,0 +1,19 @@
+goloops
+=======
+
+The in-process loop in src/goloops/loop.py is adapted from waku-agent
+(ShenSeanChen/waku-agent, MIT), specifically waku/loop/agent.py — the file
+whose docstring ends "This file is the whole trick."
+
+The DAG walk (waves of concurrent [P] nodes, serial otherwise, cycle detect)
+follows the scheduler shape described for sipyourdrink-ltd/bernstein
+(Apache-2.0). This repo does not vendor bernstein.
+
+Worktree merge-or-abort (dry-run, never leave a half-merge) follows the
+safety contract of nekocode/agent-worktree (MIT). This repo does not vendor
+agent-worktree; `goloops doctor` will use `wt` when it is on PATH.
+
+Memory commands shell out to gastownhall/beads (`bd`) when present.
+
+The ten-slot map (G1–G4, L1–L6) is the article's inventory, not a claim
+that those projects are bundled here. Install only the slots you will use.
