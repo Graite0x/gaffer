@@ -1,13 +1,39 @@
+<div align="center">
+
 # gaffer
 
 **Plans the work. Runs the fleet. Takes done back.**
 
-On a film set the gaffer is the one who calls the shot ready. Nothing is in the
-can until they say so, and they can send the whole crew back to reshoot. That is
-this tool: it drafts the plan, schedules the fleet, and it is the only thing here
-allowed to say a task is finished — or that it is not, after all.
+[![tests](https://img.shields.io/badge/tests-42%20passing-2ea043)](#tests)
+[![deps](https://img.shields.io/badge/runtime%20deps-0-2ea043)](#install)
+[![python](https://img.shields.io/badge/python-3.9%2B-3776ab)](#install)
+[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Zero runtime dependencies. Python 3.9+. Git required.
+</div>
+
+On a film set the gaffer is the one who calls the shot ready. Nothing is in the can
+until they say so — and they can send the whole crew back to reshoot.
+
+That is this tool. It drafts the plan, schedules the fleet, and it is the only thing
+here allowed to say a task is finished. Or that it is not, after all.
+
+```
+        your one line of intent
+                 │
+            gaffer plan ──────────► rejected if the scheduler cannot walk it
+                 │
+            gaffer waves ─────────► T001 · [T002 T003] · T004
+                 │
+     ┌───────────┴───────────┐
+     ▼                       ▼
+ git worktree            git worktree          one per task, no shared files
+     │                       │
+   gate ✓                  gate ✗              a command with an exit code
+     │                       │
+   merged              branch dropped          HEAD restored, dependents blocked
+                             │
+                    gaffer unfinish ─────────► and done can still be taken back
+```
 
 ---
 
