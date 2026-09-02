@@ -31,12 +31,45 @@ Or `pip install -e .` on Python 3.9+ with a current pip, then `goloops`. Git req
 
 ```sh
 goloops init                 # graph.md + .goloops/state.json
+goloops plan "<what you want>"   # ask an agent to break it down
 goloops waves                # print the schedule — no model, no spawn
 goloops run --cmd '…'        # walk it; merge only if the gate is green
 goloops unfinish T002        # take done back
 goloops status
 goloops doctor               # which of G1–L6 you actually have
 ```
+
+## Planning
+
+The DAG used to be yours to write. `goloops plan` writes the first draft —
+and then refuses it if the scheduler cannot walk it.
+
+```sh
+goloops plan "add rate limiting to the API" --gate "pytest -q"   # prints a prompt
+goloops plan --from answer.json --out graph.md                   # reads it back
+goloops plan "add rate limiting" --scaffold                      # no model at all
+```
+
+Three doors, one contract. The first prints a prompt you paste into Claude
+Code, Codex or anything else that can read; it asks for JSON, because JSON is
+cheaper to check than prose. The second reads that answer back, reviews it,
+renumbers it T001.. in wave order and writes the graph. The third skips the
+model entirely and lays down spec-kit's phase shape for you to edit.
+
+Nothing is written until the plan survives review:
+
+```
+rejected:
+  ! cycle: A -> B -> A
+  ! T004 is work but does not wait for foundational
+  ! T003 is marked [P] but depends on [P] T002
+```
+
+Missing commands and gates are warnings, not errors — a scaffold is
+unfinished on purpose. A cycle is an error, because `waves()` cannot walk it.
+
+The model proposes. The code accepts. Same contract as the gate: **a plan a
+model likes is not a plan, until the scheduler agrees it can run.**
 
 A node is a checklist item or a JSON object. `[P]` nodes that are ready at the same time share a wave. Everything else is serial. Cycles are a hard error.
 
@@ -60,6 +93,8 @@ Each node: own git worktree → command (or in-process loop) → code gate → d
 | L1 | [beads](https://github.com/gastownhall/beads) | shells out to `bd`; RunState works without it |
 | L2 | [waku-agent](https://github.com/ShenSeanChen/waku-agent) `waku/loop/agent.py` | same trick, no Anthropic client, tool errors are not swallowed |
 | L5 | [claude-review-loop](https://github.com/hamelsmu/claude-review-loop) | a file on disk that only code may write; `unfinish` |
+| plan | [spec-kit](https://github.com/github/spec-kit) — 133k★, six slash commands, its own `.specify/` tree | the phase order and the task line, ~180 lines; a spec-kit `tasks.md` runs here unconverted |
+| plan | [supervisor](https://github.com/ObedienceAdara/supervisor) — calls Anthropic/Groq itself | prompt out, JSON in, no SDK and no API key |
 
 We did not vendor bernstein. We did not fork The Claude Protocol. We did not wrap all ten installers. `NOTICE` has the attributions.
 
@@ -74,7 +109,7 @@ Search on GitHub for the ten names together returns zero repos. That is the hole
 
 ## Traps we kept honest
 
-- The DAG is hand-authored. This does not infer your graph.
+- `goloops plan` drafts the DAG; it does not know your codebase. Read the plan before you run it.
 - Isolation is not a scheduler. `goloops waves` decides how many nodes spawn.
 - Serena verifies nothing. Superpowers is persuasion. The gate is the syscall.
 - If `doctor` says `L1 !` your `.beads/` is on iCloud or Dropbox. Move it.

@@ -15,5 +15,20 @@ agent-worktree; `goloops doctor` will use `wt` when it is on PATH.
 
 Memory commands shell out to gastownhall/beads (`bd`) when present.
 
+The planner in src/goloops/plan.py takes two things from upstream, both MIT:
+
+  · github/spec-kit — the phase order (setup, foundational, work, polish),
+    the rule that foundational blocks every later phase, and the task line
+    `- [ ] [T001] Title` with `[P]` meaning "different files, no shared
+    dependency, safe in one wave". Because the line format is the same, a
+    tasks.md written by spec-kit is a goloops graph with no converter.
+
+  · ObedienceAdara/supervisor — the planner shape: ask the model for
+    structured JSON instead of prose to scrape, do not fix the task count,
+    and keep a deterministic template for when no model is available.
+
+Neither is vendored. `goloops plan` calls no API: it prints a prompt for the
+agent you already have and validates whatever comes back.
+
 The ten-slot map (G1–G4, L1–L6) is the article's inventory, not a claim
 that those projects are bundled here. Install only the slots you will use.

@@ -10,7 +10,8 @@ from goloops import __version__
 from goloops.dag import CycleError, waves
 from goloops.doctor import format_report, inspect
 from goloops.gate import RunState, unfinish
-from goloops.graph import load
+from goloops.graph import dump_markdown, load
+from goloops.plan import explain, parse, prompt, renumber, review, scaffold, to_json
 from goloops.runner import run_graph
 
 DEFAULT_GRAPH_NAMES = ("graph.md", "graph.json", ".goloops/graph.md", ".goloops/graph.json")
@@ -51,6 +52,15 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--keep-worktrees", action="store_true")
     p_run.add_argument("--repo", default=".")
 
+    p_plan = sub.add_parser("plan", help="turn one line of intent into a graph")
+    p_plan.add_argument("idea", nargs="?", default=None)
+    p_plan.add_argument("--scaffold", action="store_true", help="deterministic plan, no model")
+    p_plan.add_argument("--from", dest="answer", default=None, help="file with the model's JSON answer ('-' for stdin)")
+    p_plan.add_argument("--fanout", type=int, default=2)
+    p_plan.add_argument("--gate", default=None, help="gate command every node must pass")
+    p_plan.add_argument("--out", default=None, help="write the graph here (.md or .json)")
+    p_plan.add_argument("--repo", default=".")
+
     p_un = sub.add_parser("unfinish", help="take done back")
     p_un.add_argument("node_id")
     p_un.add_argument("--reason", default="taken back")
@@ -71,6 +81,8 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_waves(_resolve_graph(args.graph))
         if args.cmd == "run":
             return cmd_run(args)
+        if args.cmd == "plan":
+            return cmd_plan(args)
         if args.cmd == "unfinish":
             return cmd_unfinish(Path(args.repo), args.node_id, args.reason)
         if args.cmd == "status":
@@ -131,6 +143,43 @@ def cmd_run(args: argparse.Namespace) -> int:
         print(f"  {mark}  {result.node_id}  {result.detail.splitlines()[0][:80]}")
     print(f"{'green' if report.ok else 'blocked'}: {sum(r.ok for r in report.results)}/{len(report.results)}")
     return 0 if report.ok else 1
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    """Three doors: print a prompt, read an answer back, or skip the model."""
+    if args.answer:
+        raw = sys.stdin.read() if args.answer == "-" else Path(args.answer).read_text(encoding="utf-8")
+        nodes = parse(raw)
+    elif args.scaffold:
+        nodes = scaffold(args.idea or "the work", fanout=args.fanout, gate=args.gate)
+    else:
+        if not args.idea:
+            print("goloops: say what you want built", file=sys.stderr)
+            return 2
+        print(prompt(args.idea, repo=str(Path(args.repo).resolve()), gate=args.gate))
+        print("# paste the answer back:  goloops plan --from answer.json --out graph.md")
+        return 0
+
+    problems, warnings = review(nodes)
+    if problems:
+        print("rejected:")
+        for problem in problems:
+            print(f"  ! {problem}")
+        print("\nfix the plan and run it through again. nothing was written.")
+        return 1
+    if args.answer:
+        nodes = renumber(nodes)
+    print(explain(nodes))
+    for warning in warnings:
+        print(f"  ~ {warning}")
+
+    out = Path(args.out) if args.out else Path(args.repo) / "graph.md"
+    body = to_json(nodes) if out.suffix == ".json" else dump_markdown(nodes)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(body, encoding="utf-8")
+    print(f"\nreviewed and written to {out}")
+    print("next: goloops waves && goloops run")
+    return 0
 
 
 def cmd_unfinish(repo: Path, node_id: str, reason: str) -> int:
