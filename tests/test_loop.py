@@ -1,4 +1,4 @@
-from goloops.loop import LoopResult, ModelTurn, ToolCall, ToolError, run_loop
+from gaffer.loop import LoopResult, ModelTurn, ToolCall, ToolError, run_loop
 
 
 class Scripted:

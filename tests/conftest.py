@@ -15,8 +15,8 @@ def git_repo(tmp_path: Path) -> Path:
     repo = tmp_path / "repo"
     repo.mkdir()
     _git(repo, "init", "-b", "main")
-    _git(repo, "config", "user.email", "goloops@test")
-    _git(repo, "config", "user.name", "goloops")
+    _git(repo, "config", "user.email", "gaffer@test")
+    _git(repo, "config", "user.name", "gaffer")
     (repo / "README").write_text("root\n", encoding="utf-8")
     _git(repo, "add", "README")
     _git(repo, "commit", "-m", "init")

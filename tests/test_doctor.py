@@ -1,4 +1,4 @@
-from goloops.doctor import format_report, inspect
+from gaffer.doctor import format_report, inspect
 
 
 def test_doctor_marks_ours_slots(tmp_path) -> None:

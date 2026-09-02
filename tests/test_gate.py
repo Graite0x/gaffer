@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from goloops.gate import RunState, promote, run_gate, unfinish
+from gaffer.gate import RunState, promote, run_gate, unfinish
 
 
 def test_empty_gate_passes(tmp_path: Path) -> None:

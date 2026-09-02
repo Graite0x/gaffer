@@ -7,7 +7,7 @@ dist/
 build/
 *.egg-info/
 src/*.egg-info/
-.goloops/worktrees/
-.goloops/state.json
+.gaffer/worktrees/
+.gaffer/state.json
 .beads/
 .DS_Store

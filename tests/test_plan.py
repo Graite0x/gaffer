@@ -1,6 +1,6 @@
-from goloops.dag import waves
-from goloops.graph import from_markdown, dump_markdown
-from goloops.plan import (
+from gaffer.dag import waves
+from gaffer.graph import from_markdown, dump_markdown
+from gaffer.plan import (
     explain,
     parse,
     prompt,
@@ -118,7 +118,7 @@ def test_renumber_walks_in_wave_order_and_keeps_edges():
 
 
 def test_plan_round_trips_through_the_markdown_the_runner_reads():
-    """The whole point: a plan becomes a graph goloops already knows how to walk."""
+    """The whole point: a plan becomes a graph gaffer already knows how to walk."""
     nodes = scaffold("ship it", fanout=2)
     reloaded = from_markdown(dump_markdown(nodes))
     assert [n.id for n in reloaded] == [n.id for n in nodes]

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from goloops.graph import dump_markdown, from_json, from_markdown, load
+from gaffer.graph import dump_markdown, from_json, from_markdown, load
 
 
 def test_markdown_checklist() -> None:

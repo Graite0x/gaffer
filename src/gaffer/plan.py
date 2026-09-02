@@ -9,7 +9,7 @@ Two upstreams, both MIT, both credited in NOTICE:
   · github/spec-kit  — the phase order and the task line format.
     Setup -> Foundational (blocking) -> work in priority order -> Polish,
     written as `- [ ] [T001] Title`, with `[P]` marking "different files,
-    no dependencies, safe to run at the same time". goloops already parsed
+    no dependencies, safe to run at the same time". gaffer already parsed
     that line, so a tasks.md from spec-kit runs here without a converter.
 
   · ObedienceAdara/supervisor — the planner shape: ask the model for
@@ -26,7 +26,7 @@ import json
 import re
 from dataclasses import replace
 
-from goloops.dag import CycleError, Node, detect_cycle, waves
+from gaffer.dag import CycleError, Node, detect_cycle, waves
 
 # spec-kit phase order. Foundational blocks everything after it.
 PHASES = ("setup", "foundational", "work", "polish")

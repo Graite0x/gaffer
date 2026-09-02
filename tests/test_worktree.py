@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from goloops.worktree import MergeAborted, create, merge_or_abort, remove
+from gaffer.worktree import MergeAborted, create, merge_or_abort, remove
 
 
 def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -13,7 +13,7 @@ def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 
 def test_create_and_merge(git_repo: Path) -> None:
-    wt = create(git_repo, "goloops/T001", git_repo.parent / "wt-T001")
+    wt = create(git_repo, "gaffer/T001", git_repo.parent / "wt-T001")
     (wt.path / "leaf.txt").write_text("x\n", encoding="utf-8")
     _git(wt.path, "add", "leaf.txt")
     _git(wt.path, "commit", "-m", "leaf")
@@ -23,7 +23,7 @@ def test_create_and_merge(git_repo: Path) -> None:
 
 
 def test_conflict_aborts_and_leaves_repo_clean(git_repo: Path) -> None:
-    wt = create(git_repo, "goloops/T001", git_repo.parent / "wt-T001")
+    wt = create(git_repo, "gaffer/T001", git_repo.parent / "wt-T001")
     (wt.path / "README").write_text("agent\n", encoding="utf-8")
     _git(wt.path, "add", "README")
     _git(wt.path, "commit", "-m", "agent")

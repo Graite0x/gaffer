@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from goloops.dag import Node
-from goloops.gate import RunState
-from goloops.runner import NodeResult, run_graph
-from goloops.worktree import Worktree
+from gaffer.dag import Node
+from gaffer.gate import RunState
+from gaffer.runner import NodeResult, run_graph
+from gaffer.worktree import Worktree
 
 
 def _commit(wt: Worktree, name: str) -> NodeResult:
@@ -26,7 +26,7 @@ def test_gate_failure_does_not_merge(git_repo: Path) -> None:
             gate=("false",),
         )
     ]
-    state = RunState.load(git_repo / ".goloops" / "state.json")
+    state = RunState.load(git_repo / ".gaffer" / "state.json")
 
     def execute(node: Node, wt: Worktree) -> NodeResult:
         return _commit(wt, node.id)
@@ -39,7 +39,7 @@ def test_gate_failure_does_not_merge(git_repo: Path) -> None:
 
 def test_green_node_merges_and_can_be_taken_back(git_repo: Path) -> None:
     nodes = [Node(id="T001", title="ok", gate=("test -f T001.txt",))]
-    state = RunState.load(git_repo / ".goloops" / "state.json")
+    state = RunState.load(git_repo / ".gaffer" / "state.json")
 
     def execute(node: Node, wt: Worktree) -> NodeResult:
         return _commit(wt, node.id)
@@ -48,7 +48,7 @@ def test_green_node_merges_and_can_be_taken_back(git_repo: Path) -> None:
     assert report.ok is True
     assert (git_repo / "T001.txt").read_text(encoding="utf-8") == "T001\n"
     assert "T001" in state.done
-    from goloops.gate import unfinish
+    from gaffer.gate import unfinish
 
     unfinish(state, "T001", "review said no")
     assert "T001" not in state.done
@@ -60,7 +60,7 @@ def test_failed_node_blocks_dependents(git_repo: Path) -> None:
         Node(id="A", title="A", gate=("false",)),
         Node(id="B", title="B", depends_on=("A",)),
     ]
-    state = RunState.load(git_repo / ".goloops" / "state.json")
+    state = RunState.load(git_repo / ".gaffer" / "state.json")
 
     def execute(node: Node, wt: Worktree) -> NodeResult:
         seen.append(node.id)
@@ -80,7 +80,7 @@ def test_dependency_order(git_repo: Path) -> None:
         Node(id="A", title="A"),
         Node(id="B", title="B", depends_on=("A",)),
     ]
-    state = RunState.load(git_repo / ".goloops" / "state.json")
+    state = RunState.load(git_repo / ".gaffer" / "state.json")
 
     def execute(node: Node, wt: Worktree) -> NodeResult:
         seen.append(node.id)

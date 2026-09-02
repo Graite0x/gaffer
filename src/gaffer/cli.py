@@ -1,4 +1,4 @@
-"""goloops — graph on top, loop underneath."""
+"""gaffer — graph on top, loop underneath."""
 
 from __future__ import annotations
 
@@ -6,16 +6,16 @@ import argparse
 import sys
 from pathlib import Path
 
-from goloops import __version__
-from goloops.dag import CycleError, waves
-from goloops.doctor import format_report, inspect
-from goloops.gate import RunState, unfinish
-from goloops.graph import dump_markdown, load
-from goloops.plan import explain, parse, prompt, renumber, review, scaffold, to_json
-from goloops.runner import run_graph
+from gaffer import __version__
+from gaffer.dag import CycleError, waves
+from gaffer.doctor import format_report, inspect
+from gaffer.gate import RunState, unfinish
+from gaffer.graph import dump_markdown, load
+from gaffer.plan import explain, parse, prompt, renumber, review, scaffold, to_json
+from gaffer.runner import run_graph
 
-DEFAULT_GRAPH_NAMES = ("graph.md", "graph.json", ".goloops/graph.md", ".goloops/graph.json")
-STATE_NAME = ".goloops/state.json"
+DEFAULT_GRAPH_NAMES = ("graph.md", "graph.json", ".gaffer/graph.md", ".gaffer/graph.json")
+STATE_NAME = ".gaffer/state.json"
 
 EXAMPLE_GRAPH = """# Graph of loops
 # [ ] serial   [P] parallel wave   [x] already done
@@ -30,13 +30,13 @@ EXAMPLE_GRAPH = """# Graph of loops
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="goloops",
+        prog="gaffer",
         description="Schedule a fleet. Run each node as a loop. Take done back.",
     )
-    parser.add_argument("--version", action="version", version=f"goloops {__version__}")
+    parser.add_argument("--version", action="version", version=f"gaffer {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_init = sub.add_parser("init", help="write graph.md and .goloops/")
+    p_init = sub.add_parser("init", help="write graph.md and .gaffer/")
     p_init.add_argument("root", nargs="?", default=".")
 
     p_doc = sub.add_parser("doctor", help="G1–G4 / L1–L6 inventory")
@@ -88,22 +88,22 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "status":
             return cmd_status(Path(args.repo), _find_graph(args.graph))
     except CycleError as exc:
-        print(f"goloops: {exc}", file=sys.stderr)
+        print(f"gaffer: {exc}", file=sys.stderr)
         return 2
     except FileNotFoundError as exc:
-        print(f"goloops: {exc}", file=sys.stderr)
+        print(f"gaffer: {exc}", file=sys.stderr)
         return 2
     except ValueError as exc:
-        print(f"goloops: {exc}", file=sys.stderr)
+        print(f"gaffer: {exc}", file=sys.stderr)
         return 2
     return 1
 
 
 def cmd_init(root: Path) -> int:
     root = root.resolve()
-    goloops = root / ".goloops"
-    goloops.mkdir(parents=True, exist_ok=True)
-    (goloops / "roles").mkdir(exist_ok=True)
+    gaffer = root / ".gaffer"
+    gaffer.mkdir(parents=True, exist_ok=True)
+    (gaffer / "roles").mkdir(exist_ok=True)
     graph = root / "graph.md"
     if not graph.exists():
         graph.write_text(EXAMPLE_GRAPH, encoding="utf-8")
@@ -111,7 +111,7 @@ def cmd_init(root: Path) -> int:
     state.save()
     print(f"wrote {graph}")
     print(f"wrote {state.path}")
-    print("next: goloops waves && goloops doctor")
+    print("next: gaffer waves && gaffer doctor")
     return 0
 
 
@@ -154,10 +154,10 @@ def cmd_plan(args: argparse.Namespace) -> int:
         nodes = scaffold(args.idea or "the work", fanout=args.fanout, gate=args.gate)
     else:
         if not args.idea:
-            print("goloops: say what you want built", file=sys.stderr)
+            print("gaffer: say what you want built", file=sys.stderr)
             return 2
         print(prompt(args.idea, repo=str(Path(args.repo).resolve()), gate=args.gate))
-        print("# paste the answer back:  goloops plan --from answer.json --out graph.md")
+        print("# paste the answer back:  gaffer plan --from answer.json --out graph.md")
         return 0
 
     problems, warnings = review(nodes)
@@ -178,7 +178,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(body, encoding="utf-8")
     print(f"\nreviewed and written to {out}")
-    print("next: goloops waves && goloops run")
+    print("next: gaffer waves && gaffer run")
     return 0
 
 
@@ -186,7 +186,7 @@ def cmd_unfinish(repo: Path, node_id: str, reason: str) -> int:
     repo = repo.resolve()
     state = RunState.load(repo / STATE_NAME)
     unfinish(state, node_id, reason)
-    from goloops.beads import reopen
+    from gaffer.beads import reopen
 
     reopen(repo, node_id, reason)
     print(f"took back {node_id}: {reason}")
@@ -225,7 +225,7 @@ def _resolve_graph(given: str | None) -> Path:
         if path.exists():
             return path
     raise FileNotFoundError(
-        "no graph.md / graph.json — run goloops init or pass a path"
+        "no graph.md / graph.json — run gaffer init or pass a path"
     )
 
 

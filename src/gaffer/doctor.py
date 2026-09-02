@@ -10,7 +10,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-from goloops import beads, worktree
+from gaffer import beads, worktree
 
 
 @dataclass(frozen=True)
@@ -67,10 +67,10 @@ def inspect(root: Path | None = None) -> list[Slot]:
     has_review = _has_name(plugin_dir, "review-loop", "claude-review-loop")
     has_research = _has_name(plugin_dir, "insane-research")
     has_workshop = bool(_which("workshop")) or (root / ".workshop").exists()
-    roles = (root / ".goloops" / "roles").is_dir() or (root / ".claude" / "agents").is_dir()
+    roles = (root / ".gaffer" / "roles").is_dir() or (root / ".claude" / "agents").is_dir()
 
     slots = [
-        Slot("G1", "graph", "Orchestrate", "ours", "goloops walks the DAG. No model in the scheduler."),
+        Slot("G1", "graph", "Orchestrate", "ours", "gaffer walks the DAG. No model in the scheduler."),
         Slot(
             "G2",
             "graph",
@@ -83,7 +83,7 @@ def inspect(root: Path | None = None) -> list[Slot]:
             "graph",
             "Give each node a role",
             "ok" if roles else "optional",
-            "roles dir present" if roles else "no .goloops/roles — install only the roles you will use",
+            "roles dir present" if roles else "no .gaffer/roles — install only the roles you will use",
         ),
         Slot(
             "G4",
@@ -99,7 +99,7 @@ def inspect(root: Path | None = None) -> list[Slot]:
             _beads_status(bd, root),
             _beads_detail(bd, root),
         ),
-        Slot("L2", "loop", "The loop core", "ours", "goloops.loop — ends when tools stop, cap 10."),
+        Slot("L2", "loop", "The loop core", "ours", "gaffer.loop — ends when tools stop, cap 10."),
         Slot(
             "L3",
             "loop",
@@ -119,7 +119,7 @@ def inspect(root: Path | None = None) -> list[Slot]:
             "loop",
             "The gate",
             "ours",
-            "goloops gate + unfinish"
+            "gaffer gate + unfinish"
             + (" · review-loop plugin" if has_review else ""),
         ),
         Slot(
@@ -185,7 +185,7 @@ def format_report(slots: list[Slot]) -> str:
             lines.append(_cell(slot, 70))
     lines.append("")
     lines.append("ours = this repo. optional = call the upstream CLI/plugin.")
-    lines.append("The one test: goloops unfinish <id>")
+    lines.append("The one test: gaffer unfinish <id>")
     return "\n".join(lines) + "\n"
 
 

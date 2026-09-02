@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 
-from goloops.dag import Node
+from gaffer.dag import Node
 
 _ITEM = re.compile(
     r"""

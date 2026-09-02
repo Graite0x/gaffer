@@ -1,5 +1,5 @@
 [project]
-name = "goloops"
+name = "gaffer"
 version = "0.1.0"
 description = "A graph of loops: schedule a fleet, run each node as a bounded loop, take done back."
 readme = "README.md"
@@ -20,10 +20,10 @@ dependencies = []
 dev = ["pytest>=8.0"]
 
 [project.scripts]
-goloops = "goloops.cli:main"
+gaffer = "gaffer.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Graite0x/goloops"
+Homepage = "https://github.com/Graite0x/gaffer"
 
 [build-system]
 requires = ["setuptools>=61"]

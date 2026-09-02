@@ -1,4 +1,4 @@
-from goloops.dag import CycleError, Node, detect_cycle, waves
+from gaffer.dag import CycleError, Node, detect_cycle, waves
 
 
 def n(nid: str, *deps: str, parallel: bool = False, done: bool = False) -> Node:

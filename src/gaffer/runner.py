@@ -11,10 +11,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
-from goloops.beads import reopen as beads_reopen
-from goloops.dag import Node, waves
-from goloops.gate import RunState, promote, run_gate, unfinish
-from goloops.worktree import MergeAborted, Worktree, create, merge_or_abort, remove
+from gaffer.beads import reopen as beads_reopen
+from gaffer.dag import Node, waves
+from gaffer.gate import RunState, promote, run_gate, unfinish
+from gaffer.worktree import MergeAborted, Worktree, create, merge_or_abort, remove
 
 
 @dataclass
@@ -79,7 +79,7 @@ def run_graph(
 ) -> RunReport:
     """execute(node, wt) -> NodeResult overrides the default shell command."""
     repo = repo.resolve()
-    worktree_root = (worktree_root or repo / ".goloops" / "worktrees").resolve()
+    worktree_root = (worktree_root or repo / ".gaffer" / "worktrees").resolve()
     index = {n.id: n for n in nodes}
     schedule = waves(nodes)
     results: list[NodeResult] = []
@@ -170,7 +170,7 @@ def _execute_one(
     if node.done or node.id in state.done:
         return NodeResult(node.id, True, "already done")
 
-    branch = f"goloops/{node.id}".replace(" ", "-")
+    branch = f"gaffer/{node.id}".replace(" ", "-")
     path = worktree_root / node.id
     try:
         wt = create(repo, branch, path)
@@ -185,7 +185,7 @@ def _execute_one(
         result = run_node_command(
             wt.path,
             command,
-            env={"GOLOOPS_NODE": node.id, "GOLOOPS_ROLE": node.role or ""},
+            env={"GAFFER_NODE": node.id, "GAFFER_ROLE": node.role or ""},
         )
     result.node_id = node.id
     result.worktree = wt

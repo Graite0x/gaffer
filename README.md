@@ -1,8 +1,89 @@
-# goloops
+# gaffer
 
-**Graph on top. Loop underneath. A system that can take done back.**
+**Plans the work. Runs the fleet. Takes done back.**
 
-This is the wiring layer the ten-repo map never shipped. Bernstein schedules a fleet. Waku is a loop you can read. Nobody put both in one binary — so this is that binary, and nothing else.
+On a film set the gaffer is the one who calls the shot ready. Nothing is in the
+can until they say so, and they can send the whole crew back to reshoot. That is
+this tool: it drafts the plan, schedules the fleet, and it is the only thing here
+allowed to say a task is finished — or that it is not, after all.
+
+Zero runtime dependencies. Python 3.9+. Git required.
+
+---
+
+## Sixty seconds
+
+```sh
+git clone https://github.com/Graite0x/gaffer && cd gaffer
+./gaffer plan "add rate limiting to the API" --scaffold --gate "pytest -q"
+./gaffer waves
+```
+
+```
+setup:
+      T001  Setup: scaffold for add rate limiting to the API
+foundational:
+      T002  Foundational: the piece every later task needs -> T001
+work:
+  [P] T003  Work A: independent slice, own files -> T002
+  [P] T004  Work B: independent slice, own files -> T002
+polish:
+      T005  Polish: integrate and prove the whole thing -> T003 T004
+
+5 nodes, 4 waves
+  ~ no command, nothing to run: T001, T002, T003, T004, T005
+```
+
+That warning is the scaffold telling the truth: it is a shape, not your work.
+Write commands into `graph.md`, or hand one to every node at once — each gets
+`$GAFFER_NODE` in its environment:
+
+```sh
+./gaffer run --cmd 'claude -p "$GAFFER_NODE" && git add -A && git commit -m "$GAFFER_NODE"'
+```
+
+```
+  ok  T001  merged
+  ok  T002  merged
+  ok  T003  merged
+  ok  T004  merged
+  ok  T005  merged
+green: 5/5
+```
+
+Now the part that matters:
+
+```sh
+./gaffer unfinish T005 --reason "the gate was assert True"
+./gaffer status
+```
+
+```
+took back T005: the gate was assert True
+done    T001, T002, T003, T004
+failed  T005
+next    T005
+```
+
+And when a gate is actually red, nothing gets merged and the dependents never start:
+
+```
+  ok    T001  merged
+  ok    T002  merged
+  FAIL  T003  gate failed: test -f NEVER_EXISTS.txt
+  FAIL  T004  blocked by T003
+blocked: 2/4
+```
+
+The scheduler did not ask a model whether that was fine.
+
+---
+
+## What this is
+
+The ten-repo map from *[A Graph of Loops](https://x.com/Granite0x/status/2080665298609328201)*
+had two layers and no wiring between them. Bernstein schedules a fleet. Waku is a
+loop you can read. Nobody put both in one binary — so this is that binary.
 
 ```
 THE GRAPH                         THE LOOP
@@ -17,46 +98,31 @@ G4 ○ Already-ships                L4 ○ Skills     (superpowers)
 ```
 
 ● is this repo. ○ is an optional CLI or plugin. Do not install all 203 roles.
+`gaffer doctor` tells you which slots you actually have.
 
-## Install
-
-```sh
-./goloops init
-./goloops doctor
-```
-
-Or `pip install -e .` on Python 3.9+ with a current pip, then `goloops`. Git required. Zero runtime dependencies.
-
-## The instrument
-
-```sh
-goloops init                 # graph.md + .goloops/state.json
-goloops plan "<what you want>"   # ask an agent to break it down
-goloops waves                # print the schedule — no model, no spawn
-goloops run --cmd '…'        # walk it; merge only if the gate is green
-goloops unfinish T002        # take done back
-goloops status
-goloops doctor               # which of G1–L6 you actually have
-```
+---
 
 ## Planning
 
-The DAG used to be yours to write. `goloops plan` writes the first draft —
-and then refuses it if the scheduler cannot walk it.
+The DAG used to be yours to write. `gaffer plan` writes the first draft — and
+then refuses it if the scheduler cannot walk it.
 
 ```sh
-goloops plan "add rate limiting to the API" --gate "pytest -q"   # prints a prompt
-goloops plan --from answer.json --out graph.md                   # reads it back
-goloops plan "add rate limiting" --scaffold                      # no model at all
+gaffer plan "add rate limiting" --gate "pytest -q"    # prints a prompt for your agent
+gaffer plan --from answer.json --out graph.md         # reads the answer back
+gaffer plan "add rate limiting" --scaffold            # no model at all
 ```
 
-Three doors, one contract. The first prints a prompt you paste into Claude
-Code, Codex or anything else that can read; it asks for JSON, because JSON is
-cheaper to check than prose. The second reads that answer back, reviews it,
-renumbers it T001.. in wave order and writes the graph. The third skips the
-model entirely and lays down spec-kit's phase shape for you to edit.
+Three doors, one contract:
 
-Nothing is written until the plan survives review:
+| door | what happens | when |
+|---|---|---|
+| `plan "<idea>"` | prints a prompt asking for JSON — paste it into Claude Code, Codex, anything | you want the model's judgement |
+| `plan --from <file>` | parses the answer, reviews it, renumbers T001.. in wave order, writes the graph | the model answered |
+| `plan --scaffold` | lays down the phase shape with no model in the loop | you already know the shape |
+
+It asks for JSON rather than prose because JSON is cheaper to check. Nothing
+reaches disk until the plan survives review:
 
 ```
 rejected:
@@ -65,13 +131,20 @@ rejected:
   ! T003 is marked [P] but depends on [P] T002
 ```
 
-Missing commands and gates are warnings, not errors — a scaffold is
+Missing commands and gates are **warnings**, not errors — a scaffold is
 unfinished on purpose. A cycle is an error, because `waves()` cannot walk it.
 
-The model proposes. The code accepts. Same contract as the gate: **a plan a
-model likes is not a plan, until the scheduler agrees it can run.**
+**The model proposes. The code accepts.** Same contract as the gate: a plan a
+model likes is not a plan until the scheduler agrees it can run.
 
-A node is a checklist item or a JSON object. `[P]` nodes that are ready at the same time share a wave. Everything else is serial. Cycles are a hard error.
+`gaffer plan` calls no API. It prints a prompt for the agent you already pay for.
+
+---
+
+## The graph
+
+A node is a checklist line or a JSON object. `[P]` nodes ready at the same time
+share a wave; everything else is serial. Cycles are a hard error.
 
 ```
 - [ ] [T001] Scaffold
@@ -80,9 +153,50 @@ A node is a checklist item or a JSON object. `[P]` nodes that are ready at the s
 - [ ] [T004] Merge point -> T002 T003
 ```
 
-Each node: own git worktree → command (or in-process loop) → code gate → dry-run merge. Conflict or a red gate: **Merge aborted due to conflicts**, HEAD restored, node marked failed. The scheduler never asks a model whether that was fine.
+Because that is spec-kit's line format, **a `tasks.md` written by spec-kit runs
+here with no converter.**
 
-`goloops unfinish T002` is the one test. Beads, if installed, gets the same reopen.
+## The loop
+
+Each node: own git worktree → command (or in-process loop) → code gate →
+dry-run merge. Conflict or a red gate and you get **Merge aborted due to
+conflicts**, HEAD restored, node marked failed, dependents blocked.
+
+## The one test
+
+```sh
+gaffer run examples/graph.json --repo .
+gaffer unfinish T004 --reason "gate was assert True"
+gaffer status
+```
+
+If `T004` is still in `done`, the system cannot take done back, and you do not
+have a system. Beads, if installed, gets the same reopen.
+
+---
+
+## Install
+
+```sh
+./gaffer init      # graph.md + .gaffer/state.json
+./gaffer doctor    # which of G1–L6 you actually have
+```
+
+Or `pip install -e .` on Python 3.9+ with a current pip, then `gaffer`.
+
+## Commands
+
+```sh
+gaffer init                   # graph.md + .gaffer/state.json
+gaffer plan "<what you want>" # draft a graph, three ways
+gaffer waves                  # print the schedule — no model, no spawn
+gaffer run --cmd '…'          # walk it; merge only if the gate is green
+gaffer unfinish T002          # take done back
+gaffer status                 # done, failed, next
+gaffer doctor                 # slot inventory
+```
+
+---
 
 ## What we took, what we did not
 
@@ -93,10 +207,10 @@ Each node: own git worktree → command (or in-process loop) → code gate → d
 | L1 | [beads](https://github.com/gastownhall/beads) | shells out to `bd`; RunState works without it |
 | L2 | [waku-agent](https://github.com/ShenSeanChen/waku-agent) `waku/loop/agent.py` | same trick, no Anthropic client, tool errors are not swallowed |
 | L5 | [claude-review-loop](https://github.com/hamelsmu/claude-review-loop) | a file on disk that only code may write; `unfinish` |
-| plan | [spec-kit](https://github.com/github/spec-kit) — 133k★, six slash commands, its own `.specify/` tree | the phase order and the task line, ~180 lines; a spec-kit `tasks.md` runs here unconverted |
+| plan | [spec-kit](https://github.com/github/spec-kit) — 133k★, six slash commands, its own `.specify/` tree | the phase order and the task line, ~180 lines; spec-kit output runs unconverted |
 | plan | [supervisor](https://github.com/ObedienceAdara/supervisor) — calls Anthropic/Groq itself | prompt out, JSON in, no SDK and no API key |
 
-We did not vendor bernstein. We did not fork The Claude Protocol. We did not wrap all ten installers. `NOTICE` has the attributions.
+Nothing above is vendored. `NOTICE` has the attributions.
 
 Closest existing composers — and why they are not this:
 
@@ -105,22 +219,20 @@ Closest existing composers — and why they are not this:
 - [insane-research](https://github.com/fivetaku/insane-research) — the shape, for research, as a plugin. Steal `validate_ledger.py`; do not skip the gate.
 - [beads-superpowers](https://github.com/DollarDill/beads-superpowers) — L1+L4 only.
 
-Search on GitHub for the ten names together returns zero repos. That is the hole.
+Search GitHub for the ten names together and you get zero repos. That is the hole.
 
 ## Traps we kept honest
 
-- `goloops plan` drafts the DAG; it does not know your codebase. Read the plan before you run it.
-- Isolation is not a scheduler. `goloops waves` decides how many nodes spawn.
+- `gaffer plan` drafts the DAG; it does not know your codebase. Read the plan before you run it.
+- Isolation is not a scheduler. `gaffer waves` decides how many nodes spawn.
 - Serena verifies nothing. Superpowers is persuasion. The gate is the syscall.
 - If `doctor` says `L1 !` your `.beads/` is on iCloud or Dropbox. Move it.
 - Replay/eval tools can hit a real database if you point them at a production handler.
 
-## One test
+## Tests
 
 ```sh
-goloops run examples/graph.json --repo .
-goloops unfinish T004 --reason "gate was assert True"
-goloops status
+pip install -e ".[dev]" && pytest -q     # 42 tests, ~1s
 ```
 
-If `T004` is still in `done`, the system cannot take done back, and you do not have a system.
+MIT.

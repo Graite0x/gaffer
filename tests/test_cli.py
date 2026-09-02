@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from goloops.cli import main
+from gaffer.cli import main
 
 
 def test_init_waves_unfinish(tmp_path: Path, monkeypatch) -> None:
@@ -11,7 +11,7 @@ def test_init_waves_unfinish(tmp_path: Path, monkeypatch) -> None:
     assert main(["doctor"]) == 0
     assert main(["unfinish", "T001", "--reason", "no"]) == 0
     assert main(["status"]) == 0
-    state = (tmp_path / ".goloops" / "state.json").read_text(encoding="utf-8")
+    state = (tmp_path / ".gaffer" / "state.json").read_text(encoding="utf-8")
     assert "T001" in state
 
 

@@ -1,7 +1,7 @@
-goloops
+gaffer
 =======
 
-The in-process loop in src/goloops/loop.py is adapted from waku-agent
+The in-process loop in src/gaffer/loop.py is adapted from waku-agent
 (ShenSeanChen/waku-agent, MIT), specifically waku/loop/agent.py — the file
 whose docstring ends "This file is the whole trick."
 
@@ -11,23 +11,23 @@ follows the scheduler shape described for sipyourdrink-ltd/bernstein
 
 Worktree merge-or-abort (dry-run, never leave a half-merge) follows the
 safety contract of nekocode/agent-worktree (MIT). This repo does not vendor
-agent-worktree; `goloops doctor` will use `wt` when it is on PATH.
+agent-worktree; `gaffer doctor` will use `wt` when it is on PATH.
 
 Memory commands shell out to gastownhall/beads (`bd`) when present.
 
-The planner in src/goloops/plan.py takes two things from upstream, both MIT:
+The planner in src/gaffer/plan.py takes two things from upstream, both MIT:
 
   · github/spec-kit — the phase order (setup, foundational, work, polish),
     the rule that foundational blocks every later phase, and the task line
     `- [ ] [T001] Title` with `[P]` meaning "different files, no shared
     dependency, safe in one wave". Because the line format is the same, a
-    tasks.md written by spec-kit is a goloops graph with no converter.
+    tasks.md written by spec-kit is a gaffer graph with no converter.
 
   · ObedienceAdara/supervisor — the planner shape: ask the model for
     structured JSON instead of prose to scrape, do not fix the task count,
     and keep a deterministic template for when no model is available.
 
-Neither is vendored. `goloops plan` calls no API: it prints a prompt for the
+Neither is vendored. `gaffer plan` calls no API: it prints a prompt for the
 agent you already have and validates whatever comes back.
 
 The ten-slot map (G1–G4, L1–L6) is the article's inventory, not a claim
